@@ -7,6 +7,7 @@ from requests.auth import HTTPBasicAuth
 from social.utils import handle_http_errors
 from social.backends.open_id import OpenIdAuth
 from social.backends.oauth import BaseOAuth2, BaseOAuth1
+from social.backends.open_id_oauth import OpenIdOAuth1
 
 
 class YahooOpenId(OpenIdAuth):
@@ -14,6 +15,21 @@ class YahooOpenId(OpenIdAuth):
     name = 'yahoo'
     URL = 'http://me.yahoo.com'
 
+class YahooOpenIdOAuth(OpenIdOAuth1):
+    """Yahoo OpenID + OAuth authentication backend"""
+    name = 'yahoo-openidoauth'
+    URL = 'http://me.yahoo.com'
+    ACCESS_TOKEN_URL = 'https://api.login.yahoo.com/oauth/v2/get_token'
+
+    def auth_complete(self, *args, **kwargs):
+        """
+            Hack to remove 'domain_unverified' from data
+            or it would fail on check return_to value
+        """
+        data = dict(self.data.items())
+        data.pop('domain_unverified', 0)
+        self.data = data
+        return super(YahooOpenIdOAuth, self).auth_complete(*args, **kwargs)
 
 class YahooOAuth(BaseOAuth1):
     """Yahoo OAuth authentication backend. DEPRECATED"""
